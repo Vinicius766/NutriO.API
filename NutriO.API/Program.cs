@@ -1,3 +1,4 @@
+// Nutri-O API v2
 using Supabase;
 using NutriO.API.Models;
 
@@ -23,24 +24,16 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors();
 
-app.MapGet("/", () => "Nutri-O API rodando!");
+app.MapGet("/", () => "Nutri-O API v2 rodando!");
 
-// ─── PRODUTOS ───────────────────────────────────────────
+// PRODUTOS
 app.MapGet("/produtos", async (Client db) =>
 {
     var result = await db.From<Produto>().Get();
     return Results.Ok(result.Models.Select(p => new {
-        p.ProdutoId,
-        p.NomeProduto,
-        p.Descricao,
-        p.Preco,
-        p.Categoria,
-        p.QtdEstoque,
-        p.Calorias,
-        p.Proteinas,
-        p.Carboidratos,
-        p.GordurasTotais,
-        p.ImagemUrl
+        p.ProdutoId, p.NomeProduto, p.Descricao, p.Preco,
+        p.Categoria, p.QtdEstoque, p.Calorias, p.Proteinas,
+        p.Carboidratos, p.GordurasTotais, p.ImagemUrl
     }));
 });
 
@@ -49,19 +42,10 @@ app.MapGet("/produtos/{id}", async (Client db, int id) =>
     var result = await db.From<Produto>().Where(p => p.ProdutoId == id).Get();
     var p = result.Models.FirstOrDefault();
     if (p == null) return Results.NotFound();
-    return Results.Ok(new
-    {
-        p.ProdutoId,
-        p.NomeProduto,
-        p.Descricao,
-        p.Preco,
-        p.Categoria,
-        p.QtdEstoque,
-        p.Calorias,
-        p.Proteinas,
-        p.Carboidratos,
-        p.GordurasTotais,
-        p.ImagemUrl
+    return Results.Ok(new {
+        p.ProdutoId, p.NomeProduto, p.Descricao, p.Preco,
+        p.Categoria, p.QtdEstoque, p.Calorias, p.Proteinas,
+        p.Carboidratos, p.GordurasTotais, p.ImagemUrl
     });
 });
 
@@ -75,7 +59,7 @@ app.MapPost("/produtos", async (Client db, Produto produto) =>
 app.MapPut("/produtos/{id}", async (Client db, int id, Produto produto) =>
 {
     produto.ProdutoId = id;
-    var result = await db.From<Produto>().Where(p => p.ProdutoId == id).Update(produto);
+    await db.From<Produto>().Where(p => p.ProdutoId == id).Update(produto);
     return Results.Ok(new { id, atualizado = true });
 });
 
@@ -85,17 +69,13 @@ app.MapDelete("/produtos/{id}", async (Client db, int id) =>
     return Results.Ok(new { id, deletado = true });
 });
 
-// ─── CLIENTES ───────────────────────────────────────────
+// CLIENTES
 app.MapGet("/clientes", async (Client db) =>
 {
     var result = await db.From<Cliente>().Get();
     return Results.Ok(result.Models.Select(c => new {
-        c.Cpf,
-        c.Nome,
-        c.Email,
-        c.Telefone,
-        c.DataNascimento,
-        c.ObjetivoNutricional
+        c.Cpf, c.Nome, c.Email, c.Telefone,
+        c.DataNascimento, c.ObjetivoNutricional
     }));
 });
 
@@ -120,17 +100,13 @@ app.MapDelete("/clientes/{cpf}", async (Client db, string cpf) =>
     return Results.Ok(new { cpf, deletado = true });
 });
 
-// ─── PEDIDOS ────────────────────────────────────────────
+// PEDIDOS
 app.MapGet("/pedidos", async (Client db) =>
 {
     var result = await db.From<Pedido>().Get();
     return Results.Ok(result.Models.Select(p => new {
-        p.PedidoId,
-        p.DataHora,
-        p.ValorTotal,
-        p.StatusPedido,
-        p.FormaPagamento,
-        p.FkClienteCpf
+        p.PedidoId, p.DataHora, p.ValorTotal,
+        p.StatusPedido, p.FormaPagamento, p.FkClienteCpf
     }));
 });
 
@@ -156,7 +132,7 @@ app.MapDelete("/pedidos/{id}", async (Client db, int id) =>
     return Results.Ok(new { id, deletado = true });
 });
 
-// ─── ITENS PEDIDO ───────────────────────────────────────
+// ITENS
 app.MapPost("/itens", async (Client db, ItensPedido item) =>
 {
     var result = await db.From<ItensPedido>().Insert(item);
