@@ -140,6 +140,29 @@ app.MapPost("/itens", async (Client db, ItensPedido item) =>
     return Results.Ok(new { i!.ItemId, i.FkPedidosId, i.Quantidade });
 });
 
+app.MapGet("/pedidos/resumo", async (Client db) =>
+{
+    var pedidos = await db.From<Pedido>().Get();
+    var clientes = await db.From<Cliente>().Get();
+
+    var resultado = pedidos.Models.Select(p => new {
+        p.PedidoId,
+        p.DataHora,
+        p.ValorTotal,
+        p.StatusPedido,
+        p.FormaPagamento,
+        p.FkClienteCpf,
+        Cliente = clientes.Models
+            .FirstOrDefault(c => c.Cpf == p.FkClienteCpf)?.Nome ?? p.FkClienteCpf
+    });
+
+    return Results.Ok(resultado);
+});
+
+
+
 app.Run();
 
 record StatusUpdate(string Status);
+
+
