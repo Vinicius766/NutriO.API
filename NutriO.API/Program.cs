@@ -79,9 +79,18 @@ app.MapGet("/clientes", async (Client db) =>
     }));
 });
 
-app.MapPost("/clientes", async (Client db, Cliente cliente) =>
+app.MapPost("/clientes", async (Client db, ClienteRequest req) =>
 {
-    if (string.IsNullOrEmpty(cliente.Senha)) cliente.Senha = "123456";
+    var cliente = new Cliente
+    {
+        Cpf = req.Cpf,
+        Nome = req.Nome,
+        Email = req.Email,
+        Telefone = req.Telefone,
+        DataNascimento = req.DataNascimento,
+        ObjetivoNutricional = req.ObjetivoNutricional,
+        Senha = string.IsNullOrEmpty(req.Senha) ? "123456" : req.Senha
+    };
     var result = await db.From<Cliente>().Insert(cliente);
     var c = result.Models.FirstOrDefault();
     return Results.Ok(new { c!.Cpf, c.Nome, c.Email });
@@ -163,6 +172,8 @@ app.MapGet("/pedidos/resumo", async (Client db) =>
 
 app.Run();
 
+
 record StatusUpdate(string Status);
+record ClienteRequest(string Cpf, string Nome, string Email, string Telefone, DateTime? DataNascimento, string ObjetivoNutricional, string Senha);
 
 
