@@ -27,14 +27,33 @@ app.UseCors();
 app.MapGet("/", () => "Nutri-O API v2 rodando!");
 
 // PRODUTOS
-app.MapGet("/produtos", async (Client db) =>
+app.MapPost("/produtos", async (ProdutoRequest req) =>
 {
-    var result = await db.From<Produto>().Get();
-    return Results.Ok(result.Models.Select(p => new {
-        p.ProdutoId, p.NomeProduto, p.Descricao, p.Preco,
-        p.Categoria, p.QtdEstoque, p.Calorias, p.Proteinas,
-        p.Carboidratos, p.GordurasTotais, p.ImagemUrl
-    }));
+    using var http = new HttpClient();
+    http.DefaultRequestHeaders.Add("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0amtkc2RuYmxtenNuam5qa3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDg0OTQsImV4cCI6MjEwMzQyNDQ5NH0.2LlJz97QI6F7NmjSHZEEsQm9UeKARsSJTY9m5z7eBSA");
+    http.DefaultRequestHeaders.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0amtkc2RuYmxtenNuam5qa3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDg0OTQsImV4cCI6MjEwMzQyNDQ5NH0.2LlJz97QI6F7NmjSHZEEsQm9UeKARsSJTY9m5z7eBSA");
+
+    var json = System.Text.Json.JsonSerializer.Serialize(new {
+        nome_produto = req.NomeProduto,
+        descricao = req.Descricao,
+        preco = req.Preco,
+        categoria = req.Categoria,
+        qtd_estoque = req.QtdEstoque,
+        calorias = req.Calorias,
+        proteinas = req.Proteinas,
+        carboidratos = req.Carboidratos,
+        gorduras_totais = req.GordurasTotais,
+        imagem_url = req.ImagemUrl
+    });
+
+    var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+    var response = await http.PostAsync("https://ftjkdsdnblmzsnjnjkpp.supabase.co/rest/v1/produtos_info_nutricional", content);
+    var body = await response.Content.ReadAsStringAsync();
+
+    if (!response.IsSuccessStatusCode)
+        return Results.Problem(body);
+
+    return Results.Ok(new { nome = req.NomeProduto, preco = req.Preco });
 });
 
 app.MapGet("/produtos/{id}", async (Client db, int id) =>
@@ -182,5 +201,5 @@ app.Run();
 
 record StatusUpdate(string Status);
 record ClienteRequest(string Cpf, string Nome, string Email, string Telefone, DateTime? DataNascimento, string ObjetivoNutricional, string Senha);
-
+record ProdutoRequest(string NomeProduto, string Descricao, decimal Preco, string Categoria, int QtdEstoque, decimal Calorias, decimal Proteinas, decimal Carboidratos, decimal GordurasTotais, string ImagemUrl);
 
