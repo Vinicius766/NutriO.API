@@ -1,4 +1,4 @@
-// Nutri-O API v2
+// Nutri-O API v2 - Corrigido
 using Supabase;
 using NutriO.API.Models;
 
@@ -26,7 +26,11 @@ app.UseCors();
 
 app.MapGet("/", () => "Nutri-O API v2 rodando!");
 
+// ═══════════════════════════════════════════════════════════
 // PRODUTOS
+// ═══════════════════════════════════════════════════════════
+
+// GET /produtos - Lista todos
 app.MapGet("/produtos", async (Client db) =>
 {
     var result = await db.From<Produto>().Get();
@@ -37,6 +41,7 @@ app.MapGet("/produtos", async (Client db) =>
     }));
 });
 
+// GET /produtos/{id} - Busca por ID
 app.MapGet("/produtos/{id}", async (Client db, int id) =>
 {
     var result = await db.From<Produto>().Where(p => p.ProdutoId == id).Get();
@@ -49,35 +54,15 @@ app.MapGet("/produtos/{id}", async (Client db, int id) =>
     });
 });
 
-app.MapPost("/prdutor", async (ClienteRequest req) =>
+// POST /produtos - Cria novo produto (via supabase-csharp)
+app.MapPost("/produtos", async (Client db, Produto produto) =>
 {
-    using var http = new HttpClient();
-    http.DefaultRequestHeaders.Add("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0amtkc2RuYmxtenNuam5qa3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDg0OTQsImV4cCI6MjEwMzQyNDQ5NH0.2LlJz97QI6F7NmjSHZEEsQm9UeKARsSJTY9m5z7eBSA");
-    http.DefaultRequestHeaders.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0amtkc2RuYmxtenNuam5qa3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDg0OTQsImV4cCI6MjEwMzQyNDQ5NH0.2LlJz97QI6F7NmjSHZEEsQm9UeKARsSJTY9m5z7eBSA");
-    
-    var json = System.Text.Json.JsonSerializer.Serialize(new {
-        nome_produto = req.NomePrudto,
-        descricao = req.Descricao,
-        preco = req.Preco,
-        categoria = req.Preco,
-        QtdEstoque = req.QtdEstoque,
-        Calorias = req.Calorias,
-        Proteinas = req.Proteinas,
-        Carboidratos = req.Carboidratos,
-        GordurasTotais = req.GordurasTotais,
-        ImagemUrl = req.ImagemUrl
-    });
-    
-    var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-    var response = await http.PostAsync("https://ftjkdsdnblmzsnjnjkpp.supabase.co/rest/v1/clientes", content);
-    var body = await response.Content.ReadAsStringAsync();
-    
-    if (!response.IsSuccessStatusCode)
-        return Results.Problem(body);
-    
-    return Results.Ok(new { cpf = req.NomeProduto, preco = req.Preco });
+    var result = await db.From<Produto>().Insert(produto);
+    var p = result.Models.FirstOrDefault();
+    return Results.Ok(new { p!.ProdutoId, p.NomeProduto, p.Preco });
 });
 
+// PUT /produtos/{id} - Atualiza produto
 app.MapPut("/produtos/{id}", async (Client db, int id, Produto produto) =>
 {
     produto.ProdutoId = id;
@@ -85,13 +70,18 @@ app.MapPut("/produtos/{id}", async (Client db, int id, Produto produto) =>
     return Results.Ok(new { id, atualizado = true });
 });
 
+// DELETE /produtos/{id} - Deleta produto
 app.MapDelete("/produtos/{id}", async (Client db, int id) =>
 {
     await db.From<Produto>().Where(p => p.ProdutoId == id).Delete();
     return Results.Ok(new { id, deletado = true });
 });
 
+// ═══════════════════════════════════════════════════════════
 // CLIENTES
+// ═══════════════════════════════════════════════════════════
+
+// GET /clientes - Lista todos
 app.MapGet("/clientes", async (Client db) =>
 {
     var result = await db.From<Cliente>().Get();
@@ -101,30 +91,16 @@ app.MapGet("/clientes", async (Client db) =>
     }));
 });
 
-app.MapPost("/clientes", async (ClienteRequest req) =>
+// POST /clientes - Cria novo cliente
+app.MapPost("/clientes", async (Client db, Cliente cliente) =>
 {
-    using var http = new HttpClient();
-    http.DefaultRequestHeaders.Add("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0amtkc2RuYmxtenNuam5qa3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDg0OTQsImV4cCI6MjEwMzQyNDQ5NH0.2LlJz97QI6F7NmjSHZEEsQm9UeKARsSJTY9m5z7eBSA");
-    http.DefaultRequestHeaders.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0amtkc2RuYmxtenNuam5qa3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDg0OTQsImV4cCI6MjEwMzQyNDQ5NH0.2LlJz97QI6F7NmjSHZEEsQm9UeKARsSJTY9m5z7eBSA");
-    
-    var json = System.Text.Json.JsonSerializer.Serialize(new {
-        cpf = req.Cpf,
-        nome = req.Nome,
-        email = req.Email,
-        telefone = req.Telefone,
-        objetivo_nutricional = req.ObjetivoNutricional,
-        senha = string.IsNullOrEmpty(req.Senha) ? "123456" : req.Senha
-    });
-    
-    var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-    var response = await http.PostAsync("https://ftjkdsdnblmzsnjnjkpp.supabase.co/rest/v1/clientes", content);
-    var body = await response.Content.ReadAsStringAsync();
-    
-    if (!response.IsSuccessStatusCode)
-        return Results.Problem(body);
-    
-    return Results.Ok(new { cpf = req.Cpf, nome = req.Nome });
+    if (string.IsNullOrEmpty(cliente.Senha)) cliente.Senha = "123456";
+    var result = await db.From<Cliente>().Insert(cliente);
+    var c = result.Models.FirstOrDefault();
+    return Results.Ok(new { c!.Cpf, c.Nome, c.Email });
 });
+
+// PUT /clientes/{cpf} - Atualiza cliente
 app.MapPut("/clientes/{cpf}", async (Client db, string cpf, Cliente cliente) =>
 {
     cliente.Cpf = cpf;
@@ -132,13 +108,18 @@ app.MapPut("/clientes/{cpf}", async (Client db, string cpf, Cliente cliente) =>
     return Results.Ok(new { cpf, atualizado = true });
 });
 
+// DELETE /clientes/{cpf} - Deleta cliente
 app.MapDelete("/clientes/{cpf}", async (Client db, string cpf) =>
 {
     await db.From<Cliente>().Where(c => c.Cpf == cpf).Delete();
     return Results.Ok(new { cpf, deletado = true });
 });
 
+// ═══════════════════════════════════════════════════════════
 // PEDIDOS
+// ═══════════════════════════════════════════════════════════
+
+// GET /pedidos - Lista todos
 app.MapGet("/pedidos", async (Client db) =>
 {
     var result = await db.From<Pedido>().Get();
@@ -148,36 +129,7 @@ app.MapGet("/pedidos", async (Client db) =>
     }));
 });
 
-app.MapPost("/pedidos", async (Client db, Pedido pedido) =>
-{
-    pedido.DataHora = DateTime.UtcNow;
-    var result = await db.From<Pedido>().Insert(pedido);
-    var p = result.Models.FirstOrDefault();
-    return Results.Ok(new { p!.PedidoId, p.DataHora, p.ValorTotal });
-});
-
-app.MapPut("/pedidos/{id}/status", async (Client db, int id, StatusUpdate body) =>
-{
-    var pedido = new Pedido { StatusPedido = body.Status };
-    await db.From<Pedido>().Where(p => p.PedidoId == id).Update(pedido);
-    return Results.Ok(new { id, novoStatus = body.Status });
-});
-
-app.MapDelete("/pedidos/{id}", async (Client db, int id) =>
-{
-    await db.From<ItensPedido>().Where(i => i.FkPedidosId == id).Delete();
-    await db.From<Pedido>().Where(p => p.PedidoId == id).Delete();
-    return Results.Ok(new { id, deletado = true });
-});
-
-// ITENS
-app.MapPost("/itens", async (Client db, ItensPedido item) =>
-{
-    var result = await db.From<ItensPedido>().Insert(item);
-    var i = result.Models.FirstOrDefault();
-    return Results.Ok(new { i!.ItemId, i.FkPedidosId, i.Quantidade });
-});
-
+// GET /pedidos/resumo - Lista com nome do cliente
 app.MapGet("/pedidos/resumo", async (Client db) =>
 {
     var pedidos = await db.From<Pedido>().Get();
@@ -197,12 +149,47 @@ app.MapGet("/pedidos/resumo", async (Client db) =>
     return Results.Ok(resultado);
 });
 
+// POST /pedidos - Cria novo pedido
+app.MapPost("/pedidos", async (Client db, Pedido pedido) =>
+{
+    pedido.DataHora = DateTime.UtcNow;
+    var result = await db.From<Pedido>().Insert(pedido);
+    var p = result.Models.FirstOrDefault();
+    return Results.Ok(new { p!.PedidoId, p.DataHora, p.ValorTotal });
+});
 
+// PUT /pedidos/{id}/status - Atualiza status
+app.MapPut("/pedidos/{id}/status", async (Client db, int id, StatusUpdate body) =>
+{
+    var pedido = new Pedido { StatusPedido = body.Status };
+    await db.From<Pedido>().Where(p => p.PedidoId == id).Update(pedido);
+    return Results.Ok(new { id, novoStatus = body.Status });
+});
+
+// DELETE /pedidos/{id} - Deleta pedido + itens
+app.MapDelete("/pedidos/{id}", async (Client db, int id) =>
+{
+    await db.From<ItensPedido>().Where(i => i.FkPedidosId == id).Delete();
+    await db.From<Pedido>().Where(p => p.PedidoId == id).Delete();
+    return Results.Ok(new { id, deletado = true });
+});
+
+// ═══════════════════════════════════════════════════════════
+// ITENS PEDIDO
+// ═══════════════════════════════════════════════════════════
+
+// POST /itens - Cria item de pedido
+app.MapPost("/itens", async (Client db, ItensPedido item) =>
+{
+    var result = await db.From<ItensPedido>().Insert(item);
+    var i = result.Models.FirstOrDefault();
+    return Results.Ok(new { i!.ItemId, i.FkPedidosId, i.Quantidade });
+});
 
 app.Run();
 
+// ═══════════════════════════════════════════════════════════
+// DTOs
+// ═══════════════════════════════════════════════════════════
 
 record StatusUpdate(string Status);
-record ClienteRequest(string Cpf, string Nome, string Email, string Telefone, DateTime? DataNascimento, string ObjetivoNutricional, string Senha);
-record ProdutoRequest(string NomeProduto, string Descricao, decimal Preco, string Categoria, int QtdEstoque, decimal Calorias, decimal Proteinas, decimal Carboidratos, decimal GordurasTotais, string ImagemUrl);
-
