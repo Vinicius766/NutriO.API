@@ -243,6 +243,6 @@ record ProdutoRequest(
     [property: System.Text.Json.Serialization.JsonPropertyName("imagem_url")] string? ImagemUrl
 );
 
-record ProdutoRequest(string NomeProduto, string Descricao, decimal Preco, string Categoria, int QtdEstoque, decimal Calorias, decimal Proteinas, decimal Carboidratos, decimal GordurasTotais, string? ImagemUrl);
+
 record ClienteRequest(string Cpf, string Nome, string Email, string Telefone, DateTime? DataNascimento, string ObjetivoNutricional, string Senha);
 record StatusUpdate(string Status);
