@@ -92,12 +92,29 @@ app.MapGet("/clientes", async (Client db) =>
 });
 
 // POST /clientes - Cria novo cliente
-app.MapPost("/clientes", async (Client db, Cliente cliente) =>
+app.MapPost("/clientes", async (ClienteRequest req) =>
 {
-    if (string.IsNullOrEmpty(cliente.Senha)) cliente.Senha = "123456";
-    var result = await db.From<Cliente>().Insert(cliente);
-    var c = result.Models.FirstOrDefault();
-    return Results.Ok(new { c!.Cpf, c.Nome, c.Email });
+    using var http = new HttpClient();
+    http.DefaultRequestHeaders.Add("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0amtkc2RuYmxtenNuam5qa3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDg0OTQsImV4cCI6MjEwMzQyNDQ5NH0.2LlJz97QI6F7NmjSHZEEsQm9UeKARsSJTY9m5z7eBSA");
+    http.DefaultRequestHeaders.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0amtkc2RuYmxtenNuam5qa3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDg0OTQsImV4cCI6MjEwMzQyNDQ5NH0.2LlJz97QI6F7NmjSHZEEsQm9UeKARsSJTY9m5z7eBSA");
+
+    var json = System.Text.Json.JsonSerializer.Serialize(new {
+        cpf = req.Cpf,
+        nome = req.Nome,
+        email = req.Email,
+        telefone = req.Telefone,
+        objetivo_nutricional = req.ObjetivoNutricional,
+        senha = string.IsNullOrEmpty(req.Senha) ? "123456" : req.Senha
+    });
+
+    var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+    var response = await http.PostAsync("https://ftjkdsdnblmzsnjnjkpp.supabase.co/rest/v1/clientes", content);
+    var body = await response.Content.ReadAsStringAsync();
+
+    if (!response.IsSuccessStatusCode)
+        return Results.Problem(body);
+
+    return Results.Ok(new { cpf = req.Cpf, nome = req.Nome });
 });
 
 // PUT /clientes/{cpf} - Atualiza cliente
@@ -191,5 +208,5 @@ app.Run();
 // ═══════════════════════════════════════════════════════════
 // DTOs
 // ═══════════════════════════════════════════════════════════
-
+record ClienteRequest(string Cpf, string Nome, string Email, string Telefone, DateTime? DataNascimento, string ObjetivoNutricional, string Senha);
 record StatusUpdate(string Status);
